@@ -61,8 +61,11 @@ jobs:
         run: |
           pmbootstrap install --password 147147 --add postmarketos-ui-gnome
           pmbootstrap export
-          cp /tmp/postmarketOS-export/boot.img out/boot-xiaomi-pipa.img
-          cp /tmp/postmarketOS-export/xiaomi-pipa.img out/rootfs-xiaomi-pipa-gnome.img
+          # v26.06 pipa boots with systemd-boot (UEFI): no Android boot.img,
+          # the image holds the boot and root partitions
+          ls -la /tmp/postmarketOS-export/
+          cp -L /tmp/postmarketOS-export/xiaomi-pipa.img out/xiaomi-pipa-gnome.img
+          [ ! -e /tmp/postmarketOS-export/boot.img ] || cp -L /tmp/postmarketOS-export/boot.img out/boot-xiaomi-pipa.img
 
       - name: Show pmbootstrap log on failure
         if: failure()

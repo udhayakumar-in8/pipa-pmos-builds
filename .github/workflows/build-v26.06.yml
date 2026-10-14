@@ -1,6 +1,9 @@
 name: Xiaomi Pad 6 postmarketOS (v26.06)
 on:
   workflow_dispatch:
+  push:
+    branches: [claude/adoring-wozniak-casgkl]
+    paths: [.github/workflows/build-v26.06.yml]
 
 jobs:
   build-image:

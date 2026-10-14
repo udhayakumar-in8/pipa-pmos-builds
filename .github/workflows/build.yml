@@ -55,6 +55,10 @@ jobs:
            cp /tmp/postmarketOS-export/boot.img out/boot-xiaomi-pipa.img
            cp /tmp/postmarketOS-export/xiaomi-pipa.img out/rootfs-xiaomi-pipa-gnome.img
 
+      - name: Show pmbootstrap log on failure
+        if: failure()
+        run: tail -n 300 ~/.local/var/pmbootstrap/log.txt
+
       - name: Breakpoint if tests failed for xiaomi-pipa with GNOME
         if: failure()
         uses: namespacelabs/breakpoint-action@v0

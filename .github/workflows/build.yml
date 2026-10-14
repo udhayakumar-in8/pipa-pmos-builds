@@ -51,10 +51,12 @@ jobs:
             device/testing/firmware-xiaomi-pipa \
             device/testing/linux-postmarketos-qcom-sm8250-pipa
 
-      - name: Apply screen rotation fix to device-xiaomi-pipa
+      - name: Apply patches to device-xiaomi-pipa
         run: |
           cp xiaomi-pipa.cfg ~/.config/pmbootstrap_v3.cfg
-          git -C ~/.local/var/pmbootstrap/cache_git/pmaports apply "$GITHUB_WORKSPACE/patches/device-xiaomi-pipa-rotation.patch"
+          git -C ~/.local/var/pmbootstrap/cache_git/pmaports apply \
+            "$GITHUB_WORKSPACE/patches/device-xiaomi-pipa-rotation.patch" \
+            "$GITHUB_WORKSPACE/patches/device-xiaomi-pipa-udevd.patch"
           pmbootstrap checksum device-xiaomi-pipa
 
       - name: Build the xiaomi-pipa with GNOME
@@ -69,7 +71,12 @@ jobs:
 
       - name: Show pmbootstrap log on failure
         if: failure()
-        run: tail -n 300 ~/.local/var/pmbootstrap/log.txt
+        run: |
+          tail -n 300 ~/.local/var/pmbootstrap/log.txt
+          R=~/.local/var/pmbootstrap/chroot_rootfs_xiaomi-pipa
+          echo "--- udevd locations in rootfs ---"
+          sudo ls -la $R/sbin $R/usr/sbin/udevd $R/sbin/udevd $R/usr/bin/udevd $R/usr/lib/systemd/systemd-udevd 2>&1 | grep -i "udev\|sbin\|cannot" || true
+          sudo grep -rn udevd $R/usr/share/mkinitfs/ || true
 
       - name: Breakpoint if tests failed for xiaomi-pipa with GNOME
         if: failure()

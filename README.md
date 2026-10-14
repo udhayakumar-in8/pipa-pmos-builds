@@ -9,10 +9,8 @@
 
 ## 🌟 Features 
 
-- **Supported Desktop Environments**  
-  * KDE Plasma Desktop  
-  * GNOME Shell
-  * Minimal base system (no DE)
+- **Desktop Environment**  
+  * GNOME Shell (with working automatic screen rotation)
 
 - **Automated Builds**  
   ✅ Weekly builds every Friday (UTC)  
@@ -38,8 +36,6 @@ GitHub Actions Artifacts
 1. Visit our [Actions tab](https://github.com/rifux/pipa-pmos-builds/actions)   
 2. Look for the latest workflow run (marked with 🟢)  
 3. Download the desired image:
-  - `xiaomi-pipa-none_*.zip` (minimal system)
-  - `xiaomi-pipa-plasma_*.zip` (KDE Plasma)
   - `xiaomi-pipa-gnome_*.zip` (GNOME Shell)
   - `xiaomi-pipa-kernel_*.zip` (kernel packages)
   

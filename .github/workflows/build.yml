@@ -37,10 +37,19 @@ jobs:
         run: |
           echo -e '\n\n' | pmbootstrap init || true
           cd ~/.local/var/pmbootstrap/cache_git/pmaports
-          git remote
+          # Use the real v25.06 release branch so the recipes match the
+          # v25.06 binary repo. rifux/pipa-pmaports "v25.06" is an older edge
+          # snapshot, and mixing it with the binary repo breaks mkinitfs.
+          git fetch origin v25.06
+          git reset --hard origin/v25.06
+          # Take only the pipa packages from the fork
           git remote add pipa https://github.com/rifux/pipa-pmaports.git
           git fetch pipa v25.06
-          git reset --hard pipa/v25.06
+          find device -mindepth 2 -maxdepth 2 -type d -name '*-pipa' -exec rm -rf {} +
+          git checkout pipa/v25.06 -- \
+            device/testing/device-xiaomi-pipa \
+            device/testing/firmware-xiaomi-pipa \
+            device/testing/linux-postmarketos-qcom-sm8250-pipa
 
       - name: Apply screen rotation fix to device-xiaomi-pipa
         run: |

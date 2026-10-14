@@ -1,0 +1,67 @@
+name: Xiaomi Pad 6 postmarketOS (v26.06)
+on:
+  workflow_dispatch:
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out build configurations
+        uses: actions/checkout@v4
+
+      - name: Prepare
+        run: |
+          echo "CURRENT_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+          mkdir out
+          find . -type f -name "*.cfg" -exec sed -i "s|HOME|$(echo $HOME)|;s|NPROC|$(nproc)|" {} +
+          git clone --depth=1 https://gitlab.postmarketos.org/postmarketOS/pmbootstrap.git
+          mkdir -p ~/.local/bin
+          ln -s "$PWD/pmbootstrap/pmbootstrap.py" ~/.local/bin/pmbootstrap
+
+      - name: Set up upstream v26.06 pmaports
+        run: |
+          echo -e '\n\n' | pmbootstrap init || true
+          cd ~/.local/var/pmbootstrap/cache_git/pmaports
+          git fetch origin v26.06
+          git reset --hard origin/v26.06
+          echo "--- pipa aports ---"
+          find device -mindepth 2 -maxdepth 2 -type d -name '*pipa*'
+          d=$(find device -mindepth 2 -maxdepth 2 -type d -name device-xiaomi-pipa)
+          test -n "$d" || { echo "device-xiaomi-pipa is not in v26.06"; exit 1; }
+          echo "DEVICE_DIR=$d" >> $GITHUB_ENV
+          cat "$d/APKBUILD"
+          cp "$GITHUB_WORKSPACE/xiaomi-pipa.cfg" ~/.config/pmbootstrap_v3.cfg
+
+      - name: Apply screen rotation fix if still needed
+        run: |
+          cd ~/.local/var/pmbootstrap/cache_git/pmaports/$DEVICE_DIR
+          # systemd's hexagonrpcd-sdsp.service needs this file to start
+          if [ -f hexagonrpcd.confd ] && ! grep -q usr/share/hexagonrpcd APKBUILD; then
+            awk '{print} /^package\(\) \{/ {f=1} f && /devicepkg_package/ {
+              print "\n\tinstall -Dm644 \"$srcdir\"/hexagonrpcd.confd \\"
+              print "\t\t\"$pkgdir\"/usr/share/hexagonrpcd/hexagonrpcd-sdsp.conf"; f=0}' \
+              APKBUILD > APKBUILD.new && mv APKBUILD.new APKBUILD
+            sed -i 's/^pkgrel=\([0-9]*\)/echo "pkgrel=$((\1+100))"/e' APKBUILD
+            pmbootstrap checksum device-xiaomi-pipa
+            git diff
+          else
+            echo "No change needed"
+          fi
+
+      - name: Build the xiaomi-pipa with GNOME
+        run: |
+          pmbootstrap install --password 147147 --add postmarketos-ui-gnome
+          pmbootstrap export
+          cp /tmp/postmarketOS-export/boot.img out/boot-xiaomi-pipa.img
+          cp /tmp/postmarketOS-export/xiaomi-pipa.img out/rootfs-xiaomi-pipa-gnome.img
+
+      - name: Show pmbootstrap log on failure
+        if: failure()
+        run: tail -n 300 ~/.local/var/pmbootstrap/log.txt || true
+
+      - name: Upload artifacts xiaomi-pipa with GNOME
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiaomi-pipa-gnome-v26.06_${{ env.CURRENT_DATE }}
+          path: out/*.img*
+          retention-days: 7

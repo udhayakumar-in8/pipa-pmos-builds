@@ -50,6 +50,9 @@ jobs:
 
       - name: Build the xiaomi-pipa with GNOME
         run: |
+           # pmbootstrap does not build this on its own, so the
+           # firmware-xiaomi-pipa-* subpackages the device needs are missing
+           pmbootstrap build --force --arch aarch64 firmware-xiaomi-pipa
            pmbootstrap install --password 147147 --add postmarketos-ui-gnome
            pmbootstrap export
            cp /tmp/postmarketOS-export/boot.img out/boot-xiaomi-pipa.img

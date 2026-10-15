@@ -28,7 +28,15 @@ jobs:
 
       - name: Install pmbootstrap from git
         run: |
-          git clone --depth=1 https://gitlab.postmarketos.org/postmarketOS/pmbootstrap.git
+          # Newer pmbootstrap merges /sbin into /usr/sbin, which breaks the
+          # relative udevd symlink of v25.06 systemd and makes mkinitfs fail.
+          # Use the last pmbootstrap release from the v25.06 era.
+          git clone https://gitlab.postmarketos.org/postmarketOS/pmbootstrap.git
+          tag=$(git -C pmbootstrap for-each-ref --sort=-creatordate \
+            --format='%(refname:short) %(creatordate:short)' refs/tags \
+            | awk '$2 < "2025-09-01" {print $1; exit}')
+          echo "Using pmbootstrap $tag"
+          git -C pmbootstrap checkout "$tag"
           mkdir -p ~/.local/bin
           ln -s "$PWD/pmbootstrap/pmbootstrap.py" ~/.local/bin/pmbootstrap
           pmbootstrap --version
@@ -55,8 +63,7 @@ jobs:
         run: |
           cp xiaomi-pipa.cfg ~/.config/pmbootstrap_v3.cfg
           git -C ~/.local/var/pmbootstrap/cache_git/pmaports apply \
-            "$GITHUB_WORKSPACE/patches/device-xiaomi-pipa-rotation.patch" \
-            "$GITHUB_WORKSPACE/patches/device-xiaomi-pipa-udevd.patch"
+            "$GITHUB_WORKSPACE/patches/device-xiaomi-pipa-rotation.patch"
           pmbootstrap checksum device-xiaomi-pipa
 
       - name: Build the xiaomi-pipa with GNOME

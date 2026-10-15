@@ -1,0 +1,32 @@
+diff --git a/device/testing/device-xiaomi-pipa/90_xiaomi-pipa.gschema.override b/device/testing/device-xiaomi-pipa/90_xiaomi-pipa.gschema.override
+new file mode 100644
+index 0000000..903c0c2
+--- /dev/null
++++ b/device/testing/device-xiaomi-pipa/90_xiaomi-pipa.gschema.override
+@@ -0,0 +1,4 @@
++# Tablet without a keyboard: show GNOME's on-screen keyboard, also on the
++# GDM login screen
++[org.gnome.desktop.a11y.applications]
++screen-keyboard-enabled=true
+diff --git a/device/testing/device-xiaomi-pipa/APKBUILD b/device/testing/device-xiaomi-pipa/APKBUILD
+index 5b5389c..01e3490 100644
+--- a/device/testing/device-xiaomi-pipa/APKBUILD
++++ b/device/testing/device-xiaomi-pipa/APKBUILD
+@@ -23,6 +23,7 @@ makedepends="devicepkg-dev"
+ replaces="hexagonrpcd-openrc"
+ source="
+ 	81-libssc-xiaomi-pipa.rules
++	90_xiaomi-pipa.gschema.override
+ 	deviceinfo
+ 	hexagonrpcd.confd
+ 	ucm2/xiaomi-pipa.conf
+@@ -51,6 +52,9 @@ package() {
+ 	install -Dm644 "$srcdir"/hexagonrpcd.confd \
+ 		"$pkgdir"/usr/share/hexagonrpcd/hexagonrpcd-sdsp.conf
+ 
++	install -Dm644 "$srcdir"/90_xiaomi-pipa.gschema.override \
++		"$pkgdir"/usr/share/glib-2.0/schemas/90_xiaomi-pipa.gschema.override
++
+ 	# Xiaomi Pad 6 alsa-ucm-conf
+ 
+ 	install -Dm644 "$srcdir"/xiaomi-pipa.conf \
